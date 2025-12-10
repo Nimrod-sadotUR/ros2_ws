@@ -1,0 +1,26 @@
+# ROS2 build artifacts
+build/
+install/
+log/
+
+# colcon
+.colcon/
+colcon_install_layout/
+
+# Python cache
+**/__pycache__/
+*.pyc
+
+# CMake files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# VSCode / CLion
+.vscode/
+.idea/
+
+# Other common ignores
+*.swp
+*.DS_Store
+*.user
