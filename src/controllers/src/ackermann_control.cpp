@@ -19,40 +19,55 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
+#include <geometry_msgs/msg/twist_stamped.hpp>
+
 
 using namespace std::chrono_literals;
 
 /* This example creates a subclass of Node and uses std::bind() to register a
  * member function as a callback from the timer. */
 
-class MinimalPublisher : public rclcpp::Node
+class AckermannControl : public rclcpp::Node
 {
 public:
-  MinimalPublisher()
-  : Node("minimal_publisher"), count_(0)
+  AckermannControl()
+  : Node("ackermann_control"), count_(0)
   {
-    publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
+    this->set_parameter(rclcpp::Parameter("use_sim_time", true));
+    publisher_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("/ackermann_steering_controller/reference", 10);
     timer_ = this->create_wall_timer(
-      500ms, std::bind(&MinimalPublisher::timer_callback, this));
+      50ms, std::bind(&AckermannControl::timer_callback, this));
   }
 
 private:
   void timer_callback()
   {
-    auto message = std_msgs::msg::String();
-    message.data = "Hello, world! " + std::to_string(count_++);
-    RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
-    publisher_->publish(message);
+    geometry_msgs::msg::Twist tw;
+
+    tw.linear.x = 0.5;
+    tw.linear.y = 0.0;
+    tw.linear.z = 0.0;
+
+    tw.angular.x = 0.0;
+    tw.angular.y = 0.0;
+    tw.angular.z = 0.3;
+
+    geometry_msgs::msg::TwistStamped command;
+    command.twist = tw;
+    command.header.stamp = this->now();
+
+    RCLCPP_INFO(this->get_logger(), "Publishing linear.x: '%f', angular.z: '%f'", tw.linear.x, tw.angular.z);
+    publisher_->publish(command);
   }
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr publisher_;
   size_t count_;
 };
 
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<MinimalPublisher>());
+  rclcpp::spin(std::make_shared<AckermannControl>());
   rclcpp::shutdown();
   return 0;
 }
