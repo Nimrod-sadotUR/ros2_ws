@@ -1,4 +1,4 @@
-# Copyright 2022 Open Source Robotics Foundation, Inc.
+# Copyright 2024 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ def generate_launch_description():
             ' ',
             PathJoinSubstitution(
                 [FindPackageShare('gz_ros2_control_demos'),
-                 'urdf', 'my_diff_drive.xacro.urdf']
+                 'urdf', 'test_ackermann_drive.xacro.urdf']
             ),
         ]
     )
@@ -43,14 +43,7 @@ def generate_launch_description():
         [
             FindPackageShare('gz_ros2_control_demos'),
             'config',
-            'diff_drive_controller.yaml',
-        ]
-    )
-    gazebo_world = PathJoinSubstitution(
-        [
-            FindPackageShare('gz_ros2_control_demos'),
-            'worlds',
-            'diff_world.sdf',
+            'ackermann_drive_controller.yaml',
         ]
     )
 
@@ -66,7 +59,7 @@ def generate_launch_description():
         executable='create',
         output='screen',
         arguments=['-topic', 'robot_description', '-name',
-                   'diff_drive', '-allow_renaming', 'true'],
+                   'ackermann', '-allow_renaming', 'true'],
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -74,14 +67,13 @@ def generate_launch_description():
         executable='spawner',
         arguments=['joint_state_broadcaster'],
     )
-    diff_drive_base_controller_spawner = Node(
+    ackermann_steering_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=[
-            'diff_drive_base_controller',
-            '--param-file',
-            robot_controllers,
-            ],
+        arguments=['ackermann_steering_controller',
+                   '--param-file',
+                   robot_controllers,
+                   ],
     )
 
     # Bridge
@@ -93,14 +85,14 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        bridge,
         # Launch gazebo environment
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 [PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
                                        'launch',
                                        'gz_sim.launch.py'])]),
-            # launch_arguments=[('gz_args', [' -r -v 1 diff_world.sdf'])]),
-            launch_arguments=[('gz_args', [' -r -v 4 ', gazebo_world])]),
+            launch_arguments=[('gz_args', [' -r -v 1 empty.sdf'])]),
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=gz_spawn_entity,
@@ -110,10 +102,9 @@ def generate_launch_description():
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=joint_state_broadcaster_spawner,
-                on_exit=[diff_drive_base_controller_spawner],
+                on_exit=[ackermann_steering_controller_spawner],
             )
         ),
-        bridge,
         node_robot_state_publisher,
         gz_spawn_entity,
         # Launch Arguments

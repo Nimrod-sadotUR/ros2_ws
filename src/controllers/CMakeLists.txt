@@ -14,11 +14,15 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+
+include_directories(${THIS_PACKAGE_INCLUDE_DIRS})
+# Add local 'include' directory so headers in 'src/controllers/include' are found
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(diff_drive_control src/diff_drive_control.cpp)
-ament_target_dependencies(diff_drive_control rclcpp std_msgs geometry_msgs)
-
-
+ament_target_dependencies(diff_drive_control rclcpp std_msgs geometry_msgs sensor_msgs nav_msgs)
 
 add_executable(ackermann_control src/ackermann_control.cpp)
 ament_target_dependencies(ackermann_control rclcpp std_msgs geometry_msgs)
@@ -27,6 +31,7 @@ ament_target_dependencies(ackermann_control rclcpp std_msgs geometry_msgs)
 install(TARGETS
   diff_drive_control
   ackermann_control
-  DESTINATION lib/${PROJECT_NAME})
+  DESTINATION lib/${PROJECT_NAME}
+  INCLUDES DESTINATION include/${PROJECT_NAME})
 
 ament_package()

@@ -20,6 +20,11 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include <geometry_msgs/msg/twist.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+
+#include  "diff_drive_control.hpp"
+
+using std::placeholders::_1;
 
 
 using namespace std::chrono_literals;
@@ -27,42 +32,48 @@ using namespace std::chrono_literals;
 /* This example creates a subclass of Node and uses std::bind() to register a
  * member function as a callback from the timer. */
 
-class DiffDriveControl : public rclcpp::Node
-{
-public:
-  DiffDriveControl()
+namespace diff_drive_control {
+
+DiffDriveControl::DiffDriveControl()
   : Node("diff_drive_control"), count_(0)
-  {
-    publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/diff_drive_base_controller/cmd_vel_unstamped", 10);
-    timer_ = this->create_wall_timer(
-      50ms, std::bind(&DiffDriveControl::timer_callback, this));
-  }
+{
+  publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/diff_drive_base_controller/cmd_vel_unstamped", 10);
+  timer_ = this->create_wall_timer(
+    50ms, std::bind(&DiffDriveControl::timer_callback, this));
 
-private:
-  void timer_callback()
-  {
-    geometry_msgs::msg::Twist command;
+  subscription_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
+    "/scan", 10, std::bind(&DiffDriveControl::topic_callback, this, _1));
+}
 
-      command.linear.x = 0.1;
-      command.linear.y = 0.0;
-      command.linear.z = 0.0;
+DiffDriveControl::~DiffDriveControl() = default;
 
-      command.angular.x = 0.0;
-      command.angular.y = 0.0;
-      command.angular.z = 0.1;
+void DiffDriveControl::timer_callback()
+{
+  geometry_msgs::msg::Twist command;
 
-    RCLCPP_INFO(this->get_logger(), "Publishing linear.x: '%f', angular.z: '%f'", command.linear.x, command.angular.z);
-    publisher_->publish(command);
-  }
-  rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
-  size_t count_;
-};
+  command.linear.x = 0.1;
+  command.linear.y = 0.0;
+  command.linear.z = 0.0;
+
+  command.angular.x = 0.0;
+  command.angular.y = 0.0;
+  command.angular.z = 0.1;
+
+  RCLCPP_INFO(this->get_logger(), "Publishing linear.x: '%f', angular.z: '%f'", command.linear.x, command.angular.z);
+  // publisher_->publish(command);
+}
+
+void DiffDriveControl::topic_callback(const sensor_msgs::msg::LaserScan::SharedPtr msg)
+{
+  scan_buffer_.push(*msg);
+}
+
+} // namespace diff_drive_control
 
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<DiffDriveControl>());
+  rclcpp::spin(std::make_shared<diff_drive_control::DiffDriveControl>());
   rclcpp::shutdown();
   return 0;
 }
