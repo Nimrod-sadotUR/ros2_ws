@@ -50,7 +50,7 @@ def generate_launch_description():
         [
             FindPackageShare('gz_ros2_control_demos'),
             'worlds',
-            'diff_world.sdf',
+            'office_small.world',
         ]
     )
 

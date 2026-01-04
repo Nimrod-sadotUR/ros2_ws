@@ -21,12 +21,12 @@ struct RealsenseData {
   cv::Mat frame;
 };
 
-class CVEngine {
+class CvEngine : public rclcpp::Node
+{
 public:
-    CVEngine();
-    ~CVEngine();
-
-    RealsenseData realsense_data_;
+    CvEngine();
+    ~CvEngine();
+ 
 
 
 
@@ -44,8 +44,19 @@ public:
     // void reset();
 
 private:
-    // struct Impl;
-    // std::unique_ptr<Impl> pimpl_;
+  rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
+  rclcpp::TimerBase::SharedPtr classification_timer_;
+  std::vector<std::string> class_names_;
+  cv::dnn::Net net_;
+  bool net_loaded_{false};
+  cv::Mat frame;
+
+  RealsenseData realsense_data_;
+  void image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
+  void timer_callback();
+
+
+
 };
 
 }  // namespace cv_engine

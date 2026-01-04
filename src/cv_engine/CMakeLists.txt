@@ -18,6 +18,10 @@ find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 # find_package(opencv_dnn REQUIRED)
 
+include_directories(${THIS_PACKAGE_INCLUDE_DIRS})
+# Add local 'include' directory so headers in 'src/controllers/include' are found
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 include_directories(
   ${OpenCV_INCLUDE_DIRS}
 )

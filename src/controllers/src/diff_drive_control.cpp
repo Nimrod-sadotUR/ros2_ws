@@ -60,7 +60,7 @@ void DiffDriveControl::timer_callback()
   command.angular.z = 0.1;
 
   RCLCPP_INFO(this->get_logger(), "Publishing linear.x: '%f', angular.z: '%f'", command.linear.x, command.angular.z);
-  // publisher_->publish(command);
+  publisher_->publish(command);
 }
 
 void DiffDriveControl::topic_callback(const sensor_msgs::msg::LaserScan::SharedPtr msg)
